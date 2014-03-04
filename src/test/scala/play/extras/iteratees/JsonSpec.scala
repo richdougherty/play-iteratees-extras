@@ -25,9 +25,22 @@ object JsonSpec extends Specification {
       "array" -> Json.arr(Json.obj("foo" -> "bar"), 20),
       "obj" -> Json.obj("one" -> 1, "two" -> 2, "nested" -> Json.obj("spam" -> "eggs"))
     ))
+    "parse large object" in test({
+      val repeatedItem = Json.obj(
+        "deviceId" -> "122F08E1-F147-469E-9BF9-6074EAC814AC",
+        "timestamp" -> "119802237.153125",
+        "x" -> "0.027740478515625",
+        "y" -> "-0.0445556640625",
+        "z" -> "-1.002105712890625"
+      )
+      Json.arr(Array.fill(100)(repeatedItem))
+    }, "large")
   }
 
-  def test(json: JsValue) = {
+  def test(json: JsValue, name: String = "anon") = {
+    val start = System.currentTimeMillis
     Await.result(Enumerator(Json.stringify(json).toCharArray) |>>> JsonIteratees.jsValue, Duration.Inf) must_== json
+    val end = System.currentTimeMillis
+    println(s"$name: ${end - start}")
   }
 }
